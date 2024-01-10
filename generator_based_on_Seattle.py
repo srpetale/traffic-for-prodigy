@@ -264,7 +264,7 @@ def draw_erlangs_from_Seattle(aggregation='avg', from_date=0, to_date=0, first_e
     if(to_date == 0):
         to_date = len(seattle_avg)
     seattle_list = seattle_avg[from_date:to_date]['bitrate']
-    first_value = seattle_list[0]
+    first_value = seattle_list.iloc[0]
     percentages = (seattle_list / first_value) * first_erlang
     plt.plot(percentages)
     plt.title('Erlangs based on Seattle traffic (daily {}, {} resampling) relative to {}'.format(aggregation, resampling, from_date))
