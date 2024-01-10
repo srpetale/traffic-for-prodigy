@@ -39,12 +39,12 @@ class NetworkTrafficGenerator:
         self.current_time: float = current_time
     
     def generate_connection_data(self):
-        source: int = random.sample(self.nodes_set, 1)
+        source: int = random.sample(sorted(self.nodes_set), 1)
         self.nodes_set.remove(source[0])
-        destination: int = random.sample(self.nodes_set, 1)
+        destination: int = random.sample(sorted(self.nodes_set), 1)
         self.nodes_set.add(source[0])
 
-        datarate: int = random.sample(self.datarates_set, 1)
+        datarate: int = random.sample(sorted(self.datarates_set), 1)
         
         return source[0], destination[0], datarate[0]
 
