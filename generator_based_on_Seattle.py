@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 import random
 import math
+from parameters import IS_CONSTANT_BITRATE, CONSTANT_BITRATE_GBPS, DATARATE_LIST_GBPS, DATARATE_SELECTION_PROBABILITIES
 
 random.seed(2137)
 
@@ -49,7 +50,7 @@ def seattle_percentage_from_date(aggregation='avg', from_date=0, to_date=0, resa
     return percentages  
 
 
-def generate_traffic_based_on_seattle(from_date=0, to_date=0, aggregation = 'max', resampling='weekly', number_of_nodes=14, mean_holding_time=1.0, list_of_datarates=[100], first_erlang=100):
+def generate_traffic_based_on_seattle(from_date=0, to_date=0, aggregation = 'max', resampling='weekly', number_of_nodes=14, mean_holding_time=1.0, constant_bitrate=IS_CONSTANT_BITRATE, first_erlang=100):
     source_ids = []
     destination_ids = []
     datarates = []
@@ -64,7 +65,12 @@ def generate_traffic_based_on_seattle(from_date=0, to_date=0, aggregation = 'max
     else:
         print('unknown resampling')    
         return pd.DataFrame([])
-
+    
+    if IS_CONSTANT_BITRATE:
+        list_of_datarates=[CONSTANT_BITRATE_GBPS]
+    else:
+        list_of_datarates=DATARATE_LIST_GBPS
+    
     last_arrival = 0.0
 
     for load in range(len(loads_in_erlang)):
@@ -203,9 +209,9 @@ def perdict_traffic(generated_traffic, alpha=1, period_length=90, constant_bitra
                 new_df['source_id'] = sources[node_pair]
                 new_df['destination_id'] = destinations[node_pair]
                 if(constant_bitrate):
-                    new_df['datarate'] = 100
+                    new_df['datarate'] = CONSTANT_BITRATE_GBPS
                 else:
-                    new_df['datarate'] = np.array([np.random.choice([50,75,100], 1, p=[0.05,0.2,0.75]) for _ in range(len(new_df))]).flatten()    
+                    new_df['datarate'] = np.array([np.random.choice(DATARATE_LIST_GBPS, 1, p=DATARATE_SELECTION_PROBABILITIES) for _ in range(len(new_df))]).flatten()    
                 new_df['arrival_time'] = new_df['current_global_time']
                 new_df['departure_time'] = new_df['arrival_time']+random.expovariate(0.75)
                 dfs.append(new_df)
