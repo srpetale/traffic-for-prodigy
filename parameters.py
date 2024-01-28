@@ -1,5 +1,5 @@
 # Traffic information
-FROM_DATE='2022-01-01' #'2009-01-01'
+FROM_DATE='2009-01-01' #'2009-01-01'
 TO_DATE='2024-01-01'
 AGGREGATION='max'
 RESAMPLING='weekly'
