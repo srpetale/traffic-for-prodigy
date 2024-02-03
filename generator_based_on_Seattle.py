@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 import random
 import math
-from parameters import IS_CONSTANT_BITRATE, CONSTANT_BITRATE_GBPS, DATARATE_LIST_GBPS, DATARATE_SELECTION_PROBABILITIES
+from parameters import IS_CONSTANT_BITRATE, CONSTANT_BITRATE_GBPS, DATARATE_LIST_GBPS, DATARATE_SELECTION_PROBABILITIES, UPGRADE_PERIOD, LAMBDA_0
 
 random.seed(2137)
 
@@ -50,7 +50,7 @@ def seattle_percentage_from_date(aggregation='avg', from_date=0, to_date=0, resa
     return percentages  
 
 
-def generate_traffic_based_on_seattle(from_date=0, to_date=0, aggregation = 'max', resampling='weekly', number_of_nodes=14, mean_holding_time=1.0, constant_bitrate=IS_CONSTANT_BITRATE, first_erlang=100):
+def generate_traffic_based_on_seattle(from_date=0, to_date=0, aggregation = 'max', resampling='weekly', number_of_nodes=14, mean_holding_time=1.0, constant_bitrate=IS_CONSTANT_BITRATE, first_erlang=LAMBDA_0, period_length=UPGRADE_PERIOD):
     source_ids = []
     destination_ids = []
     datarates = []
@@ -73,6 +73,7 @@ def generate_traffic_based_on_seattle(from_date=0, to_date=0, aggregation = 'max
     
     last_arrival = 0.0
 
+    period = 1
     for load in range(len(loads_in_erlang)):
         traffic_generator = NetworkTrafficGenerator(number_of_nodes=number_of_nodes,
         list_of_datarates=list_of_datarates,
@@ -92,8 +93,20 @@ def generate_traffic_based_on_seattle(from_date=0, to_date=0, aggregation = 'max
             last_arrival = arrival_time
             connection_id += 1
 
-    generated_traffic = pd.DataFrame({'current_global_time':arrival_times, 'source_id':source_ids,'destination_id':destination_ids,'datarate':datarates,'arrival_time':arrival_times,'departure_time':departure_times})
-    return generated_traffic
+            if(last_arrival >= period*period_length):
+                generated_traffic = pd.DataFrame({'current_global_time':arrival_times, 'source_id':source_ids,'destination_id':destination_ids,'datarate':datarates,'arrival_time':arrival_times,'departure_time':departure_times})
+                generated_traffic.to_csv('period{}.csv'.format(period))
+                source_ids = [] 
+                destination_ids = [] 
+                datarates = [] 
+                arrival_times = [] 
+                departure_times = [] 
+                generated_traffic = []
+                period += 1
+
+    
+    # generated_traffic = pd.DataFrame({'current_global_time':arrival_times, 'source_id':source_ids,'destination_id':destination_ids,'datarate':datarates,'arrival_time':arrival_times,'departure_time':departure_times})
+    # return generated_traffic
 
 
 def divide_generated_traffic_into_periods(generated_traffic, period_length=90):
