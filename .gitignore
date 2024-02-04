@@ -275,3 +275,12 @@ generated_traffic_data/load_300/predicted_traffic/alpha5/predicted_traffic_5220_
 generated_traffic_data/load_300/predicted_traffic/alpha5/predicted_traffic_5310_5400.txt
 generated_traffic_data/load_300/predicted_traffic/alpha5/predicted_traffic_5400_5490.txt
 generated_traffic_data/load_300/predicted_traffic/alpha5/predicted_traffic_5490_5580.txt
+generated_traffic_data/load_50/actual_traffic/actual_traffic_270_360.txt
+generated_traffic_data/load_50/actual_traffic/actual_traffic_180_270.txt
+generated_traffic_data/load_50/actual_traffic/actual_traffic_90_180.txt
+generated_traffic_data/load_50/actual_traffic/actual_traffic_0_90.txt
+__pycache__/parameters.cpython-311.pyc
+__pycache__/generator_based_on_Seattle.cpython-312.pyc
+__pycache__/generator_based_on_Seattle.cpython-311.pyc
+__pycache__/parameters.cpython-311.pyc
+__pycache__/generator_based_on_Seattle.cpython-311.pyc
