@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 import random
 import math
-from parameters import IS_CONSTANT_BITRATE, CONSTANT_BITRATE_GBPS, DATARATE_LIST_GBPS, DATARATE_SELECTION_PROBABILITIES, UPGRADE_PERIOD, LAMBDA_0
+from parameters import IS_CONSTANT_BITRATE, CONSTANT_BITRATE_GBPS, DATARATE_LIST_GBPS, DATARATE_SELECTION_PROBABILITIES, UPGRADE_PERIOD, LAMBDA_0, ALPHA_PERCENT
 
 random.seed(2137)
 
@@ -120,10 +120,7 @@ def divide_generated_traffic_into_periods(generated_traffic, period_length=90):
     return periods
 
 
-def perdict_traffic_for_next_period(traffic_from_pervious_period, alpha=1, constant_bitrate=True, number_of_nodes=15, period_length = 90):
-    """
-    traffic_from_previous_period should be a dataframe, e.g., pd.read_csv('period0.csv')
-    """
+def perdict_traffic_for_next_period(traffic_from_pervious_period, alpha=ALPHA_PERCENT, constant_bitrate=True, number_of_nodes=15, period_length = 90):
     def divide_into_windows(series, window_size):
         windows = []
         targets = []
