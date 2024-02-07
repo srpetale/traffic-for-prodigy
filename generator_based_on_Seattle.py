@@ -120,6 +120,114 @@ def divide_generated_traffic_into_periods(generated_traffic, period_length=90):
     return periods
 
 
+def perdict_traffic_for_next_period(traffic_from_pervious_period, alpha=1, constant_bitrate=True, number_of_nodes=15, period_length = 90):
+    """
+    traffic_from_previous_period should be a dataframe, e.g., pd.read_csv('period0.csv')
+    """
+    def divide_into_windows(series, window_size):
+        windows = []
+        targets = []
+        length = len(series)
+            
+        for i in range(length - window_size):
+            window = series[i:i+window_size]
+            target = series[i+window_size]
+            windows.append(window)
+            targets.append(target)
+            
+        return windows, targets
+    
+    increase_ratio = 1 + (alpha/100)
+    current_traffic = traffic_from_pervious_period
+    train_start = math.floor(min(traffic_from_pervious_period['current_global_time']))
+    train_end = train_start+period_length
+    
+    sequences = []
+    sources = []
+    destinations = []
+    for source in range(number_of_nodes):
+        for destination in range(number_of_nodes):
+            if(source != destination):
+                sources.append(source)
+                destinations.append(destination)
+                sequences.append(current_traffic[(current_traffic['source_id']==source) & (current_traffic['destination_id']==destination)].reset_index(drop=True))
+
+    dfs = []
+    final_windows = []
+    final_targets = []
+    for node_pair in range(len(sequences)):
+        series = sequences[node_pair]['arrival_time']
+        window_size = 3
+        windows, targets = divide_into_windows(series, window_size)
+
+        for i in range(len(windows)):
+            final_windows.append(windows[i])
+            final_targets.append(targets[i])
+
+        X = np.array(windows)
+        y = np.array(targets)
+        
+        if(len(targets) > window_size):
+            model = LinearRegression()
+            model.fit(X, y)
+
+            series = sequences[node_pair]['arrival_time']
+            num_predictions = len(series) - window_size
+            next_windows = []
+            newest_prediction = 0
+            i=0
+            while newest_prediction < train_end+period_length:
+                newest_prediction = model.predict(X[-1:])
+                if(newest_prediction < train_end):
+                    newest_prediction = train_end + abs(np.random.normal(0, 1))
+                next_window = np.append(X[-1, 1:], newest_prediction)
+                next_windows.append(next_window)
+                X = np.vstack([X, next_window])
+                if(i > int(num_predictions/100*increase_ratio)):
+                    break
+                i += 1
+
+            predictions = []
+            for window, target in zip(next_windows, model.predict(next_windows)):
+                if(target < train_end):
+                    target = train_end + abs(np.random.normal(0, 1))
+                predictions.append(target)
+
+            mean = 0  
+            std_dev = 1  
+            predictions_with_noise = [prediction + abs(np.random.normal(mean, std_dev)) for prediction in predictions]
+
+            num_samples = 0
+            
+            if(len(predictions_with_noise) < math.ceil(num_predictions*increase_ratio)):
+                num_samples = math.ceil(num_predictions*increase_ratio) - len(predictions_with_noise)
+
+            new_elements = []
+            for _ in range(num_samples):
+                new_element = random.uniform(train_end,train_end+period_length) # this creates additional connections nicely spread throughout the whole period
+                # new_element = random.uniform(train_end,train_end+7) # creates new connections within the first week to create a momentary spike
+                new_elements.append(new_element)
+
+            predictions_with_noise.extend(new_elements)
+            predictions_with_noise.sort()
+
+            new_df = pd.DataFrame(predictions_with_noise)
+            new_df.columns = ['current_global_time']
+            new_df['source_id'] = sources[node_pair]
+            new_df['destination_id'] = destinations[node_pair]
+            if(constant_bitrate):
+                new_df['datarate'] = CONSTANT_BITRATE_GBPS
+            else:
+                new_df['datarate'] = np.array([np.random.choice(DATARATE_LIST_GBPS, 1, p=DATARATE_SELECTION_PROBABILITIES) for _ in range(len(new_df))]).flatten()    
+            new_df['arrival_time'] = new_df['current_global_time']
+            new_df['departure_time'] = new_df['arrival_time']+random.expovariate(0.75)      
+            dfs.append(new_df)      
+
+    final_ml = pd.concat(dfs)
+    final_ml = final_ml.sort_values(by=['current_global_time']).reset_index(drop=True)
+    final_ml = final_ml.drop(final_ml[final_ml.current_global_time > train_end+period_length].index)        
+    final_ml.to_csv('prediction_from_day_{}.csv'.format(train_end))
+
 def perdict_traffic(generated_traffic, alpha=1, period_length=90, constant_bitrate=True, number_of_nodes=15):
     
     def divide_into_windows(series, window_size):
@@ -296,4 +404,3 @@ def draw_erlangs_from_Seattle(aggregation='avg', from_date=0, to_date=0, first_e
     if(savefig):
         plt.savefig('seattle_percentage_from_date_{}_{}.jpeg'.format(from_date,aggregation), dpi=600)
     plt.show() 
-
