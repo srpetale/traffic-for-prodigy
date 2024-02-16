@@ -95,7 +95,7 @@ def generate_traffic_based_on_seattle(from_date=0, to_date=0, aggregation = 'max
 
             if(last_arrival >= period*period_length):
                 generated_traffic = pd.DataFrame({'current_global_time':arrival_times, 'source_id':source_ids,'destination_id':destination_ids,'datarate':datarates,'arrival_time':arrival_times,'departure_time':departure_times})
-                generated_traffic.to_csv('period{}.csv'.format(period))
+                generated_traffic.to_csv('traffic_from_day_{}.csv'.format(math.floor(last_arrival)-period_length))
                 source_ids = [] 
                 destination_ids = [] 
                 datarates = [] 
@@ -120,7 +120,7 @@ def divide_generated_traffic_into_periods(generated_traffic, period_length=90):
     return periods
 
 
-def perdict_traffic_for_next_period(traffic_from_pervious_period, alpha=ALPHA_PERCENT, constant_bitrate=True, number_of_nodes=15, period_length = 90):
+def perdict_traffic_for_next_period(traffic_from_previous_period, alpha=ALPHA_PERCENT, constant_bitrate=True, number_of_nodes=15, period_length = 90):
     def divide_into_windows(series, window_size):
         windows = []
         targets = []
@@ -135,8 +135,14 @@ def perdict_traffic_for_next_period(traffic_from_pervious_period, alpha=ALPHA_PE
         return windows, targets
     
     increase_ratio = 1 + (alpha/100)
-    current_traffic = traffic_from_pervious_period
-    train_start = math.floor(min(traffic_from_pervious_period['current_global_time']))
+
+    period_start = traffic_from_previous_period['current_global_time'].min()
+    first_week_count = len(traffic_from_previous_period['current_global_time'].loc[traffic_from_previous_period['current_global_time'] < period_start + 7])
+    last_week_count = len(traffic_from_previous_period['current_global_time'].loc[(traffic_from_previous_period['current_global_time'] > (period_start + period_length - 7)) & (traffic_from_previous_period['current_global_time'] < (period_start + period_length))])
+    add_connections = abs(last_week_count-first_week_count)
+
+    current_traffic = traffic_from_previous_period
+    train_start = math.floor(min(traffic_from_previous_period['current_global_time']))
     train_end = train_start+period_length
     
     sequences = []
@@ -196,8 +202,11 @@ def perdict_traffic_for_next_period(traffic_from_pervious_period, alpha=ALPHA_PE
 
             num_samples = 0
             
-            if(len(predictions_with_noise) < math.ceil(num_predictions*increase_ratio)):
-                num_samples = math.ceil(num_predictions*increase_ratio) - len(predictions_with_noise)
+            if(len(predictions_with_noise) < num_predictions + add_connections):
+                num_samples = num_predictions + add_connections - len(predictions_with_noise)
+            
+            if(num_samples < math.ceil(num_samples*increase_ratio)):
+                num_samples += math.ceil(num_samples*increase_ratio) - len(predictions_with_noise)
 
             new_elements = []
             for _ in range(num_samples):
@@ -264,16 +273,10 @@ def perdict_traffic(generated_traffic, alpha=1, period_length=90, constant_bitra
 
         dfs = []
 
-        final_windows = []
-        final_targets = []
         for node_pair in range(len(sequences)):
             series = sequences[node_pair]['arrival_time']
             window_size = 3
             windows, targets = divide_into_windows(series, window_size)
-
-            for i in range(len(windows)):
-                final_windows.append(windows[i])
-                final_targets.append(targets[i])
 
             X = np.array(windows)
             y = np.array(targets)
