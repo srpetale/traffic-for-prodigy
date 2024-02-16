@@ -139,7 +139,7 @@ def perdict_traffic_for_next_period(traffic_from_previous_period, alpha=ALPHA_PE
     period_start = traffic_from_previous_period['current_global_time'].min()
     first_week_count = len(traffic_from_previous_period['current_global_time'].loc[traffic_from_previous_period['current_global_time'] < period_start + 7])
     last_week_count = len(traffic_from_previous_period['current_global_time'].loc[(traffic_from_previous_period['current_global_time'] > (period_start + period_length - 7)) & (traffic_from_previous_period['current_global_time'] < (period_start + period_length))])
-    add_connections = abs(last_week_count-first_week_count)
+    add_connections = math.ceil(len(traffic_from_previous_period)*(abs(first_week_count-last_week_count)/first_week_count))
 
     current_traffic = traffic_from_previous_period
     train_start = math.floor(min(traffic_from_previous_period['current_global_time']))
