@@ -161,16 +161,13 @@ def perdict_traffic_for_next_period(traffic_from_previous_period, alpha=ALPHA_PE
                 sequences.append(current_traffic[(current_traffic['source_id']==source) & (current_traffic['destination_id']==destination)].reset_index(drop=True))
 
     dfs = []
-    final_windows = []
-    final_targets = []
+
     for node_pair in range(len(sequences)):
         series = sequences[node_pair]['arrival_time']
         window_size = 3
         windows, targets = divide_into_windows(series, window_size)
 
-        for i in range(len(windows)):
-            final_windows.append(windows[i])
-            final_targets.append(targets[i])
+
 
         X = np.array(windows)
         y = np.array(targets)
