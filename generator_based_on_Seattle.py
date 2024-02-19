@@ -50,7 +50,7 @@ def seattle_percentage_from_date(aggregation='avg', from_date=0, to_date=0, resa
     return percentages  
 
 
-def generate_traffic_based_on_seattle(from_date=0, to_date=0, aggregation = 'max', resampling='weekly', number_of_nodes=14, mean_holding_time=1.0, constant_bitrate=IS_CONSTANT_BITRATE, first_erlang=LAMBDA_0, period_length=UPGRADE_PERIOD):
+def generate_traffic_based_on_seattle(from_date=0, to_date=0, aggregation = 'max', resampling='weekly', number_of_nodes=14, mean_holding_time=1.0, constant_bitrate=IS_CONSTANT_BITRATE, first_erlang=LAMBDA_0, period_length=UPGRADE_PERIOD,actual_traffic_folder_path=''):
     source_ids = []
     destination_ids = []
     datarates = []
@@ -95,7 +95,12 @@ def generate_traffic_based_on_seattle(from_date=0, to_date=0, aggregation = 'max
 
             if(last_arrival >= period*period_length):
                 generated_traffic = pd.DataFrame({'current_global_time':arrival_times, 'source_id':source_ids,'destination_id':destination_ids,'datarate':datarates,'arrival_time':arrival_times,'departure_time':departure_times})
-                generated_traffic.to_csv('traffic_from_day_{}.csv'.format(math.floor(last_arrival)-period_length))
+                filepath: str = actual_traffic_folder_path + '/' + 'actual_traffic' + '_' + str(UPGRADE_PERIOD * (period-1)) + '_' + str(UPGRADE_PERIOD * period) + '.txt'
+
+                #export DataFrame to text file
+                with open(filepath, 'w') as f:
+                    df_string = generated_traffic.to_string(header=False, index=True)
+                    f.write(df_string)
                 source_ids = [] 
                 destination_ids = [] 
                 datarates = [] 
@@ -120,7 +125,7 @@ def divide_generated_traffic_into_periods(generated_traffic, period_length=90):
     return periods
 
 
-def perdict_traffic_for_next_period(traffic_from_previous_period, alpha=ALPHA_PERCENT, constant_bitrate=True, number_of_nodes=15, period_length = 90):
+def perdict_traffic_for_next_period(traffic_from_previous_period, alpha=ALPHA_PERCENT, constant_bitrate=True, number_of_nodes=15, period_length = 90,predicted_traffic_alphafolder_path='',index=0):
     def divide_into_windows(series, window_size):
         windows = []
         targets = []
@@ -232,7 +237,12 @@ def perdict_traffic_for_next_period(traffic_from_previous_period, alpha=ALPHA_PE
     final_ml = pd.concat(dfs)
     final_ml = final_ml.sort_values(by=['current_global_time']).reset_index(drop=True)
     final_ml = final_ml.drop(final_ml[final_ml.current_global_time > train_end+period_length].index)        
-    final_ml.to_csv('prediction_from_day_{}.csv'.format(train_end))
+    filepath: str = predicted_traffic_alphafolder_path + '/' + 'predicted_traffic' + '_' + str(UPGRADE_PERIOD * (index + 1)) + '_' + str(UPGRADE_PERIOD * (index + 2)) + '.txt'
+
+                #export DataFrame to text file
+    with open(filepath, 'w') as f:
+    	df_string = final_ml.to_string(header=False, index=True)
+    	f.write(df_string) 
 
 def perdict_traffic(generated_traffic, alpha=1, period_length=90, constant_bitrate=True, number_of_nodes=15):
     
