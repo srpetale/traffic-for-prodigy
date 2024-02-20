@@ -95,11 +95,11 @@ def generate_traffic_based_on_seattle(from_date=0, to_date=0, aggregation = 'max
 
             if(last_arrival >= period*period_length):
                 generated_traffic = pd.DataFrame({'current_global_time':arrival_times, 'source_id':source_ids,'destination_id':destination_ids,'datarate':datarates,'arrival_time':arrival_times,'departure_time':departure_times})
-                filepath: str = actual_traffic_folder_path + '/' + 'actual_traffic' + '_' + str(UPGRADE_PERIOD * (period-1)) + '_' + str(UPGRADE_PERIOD * period) + '.txt'
+                filepath: str = actual_traffic_folder_path + '/' + 'actual_traffic' + '_' + str(UPGRADE_PERIOD * (period-1)) + '_' + str(UPGRADE_PERIOD * period) + '.csv'
 
                 #export DataFrame to text file
                 with open(filepath, 'w') as f:
-                    df_string = generated_traffic.to_string(header=False, index=True)
+                    df_string = generated_traffic.to_csv(header=True, index=True) 
                     f.write(df_string)
                 source_ids = [] 
                 destination_ids = [] 
@@ -144,7 +144,7 @@ def perdict_traffic_for_next_period(traffic_from_previous_period, alpha=ALPHA_PE
     period_start = traffic_from_previous_period['current_global_time'].min()
     first_week_count = len(traffic_from_previous_period['current_global_time'].loc[traffic_from_previous_period['current_global_time'] < period_start + 7])
     last_week_count = len(traffic_from_previous_period['current_global_time'].loc[(traffic_from_previous_period['current_global_time'] > (period_start + period_length - 7)) & (traffic_from_previous_period['current_global_time'] < (period_start + period_length))])
-    add_connections = math.ceil(len(traffic_from_previous_period)*(abs(first_week_count-last_week_count)/first_week_count))
+    add_connections = math.ceil(len(traffic_from_previous_period)*(abs(first_week_count-last_week_count)/first_week_count)*0.05)
 
     current_traffic = traffic_from_previous_period
     train_start = math.floor(min(traffic_from_previous_period['current_global_time']))
@@ -234,12 +234,12 @@ def perdict_traffic_for_next_period(traffic_from_previous_period, alpha=ALPHA_PE
     final_ml = pd.concat(dfs)
     final_ml = final_ml.sort_values(by=['current_global_time']).reset_index(drop=True)
     final_ml = final_ml.drop(final_ml[final_ml.current_global_time > train_end+period_length].index)        
-    filepath: str = predicted_traffic_alphafolder_path + '/' + 'predicted_traffic' + '_' + str(UPGRADE_PERIOD * (index + 1)) + '_' + str(UPGRADE_PERIOD * (index + 2)) + '.txt'
+    filepath: str = predicted_traffic_alphafolder_path + '/' + 'predicted_traffic' + '_' + str(index + UPGRADE_PERIOD) + '_' + str(index + UPGRADE_PERIOD*2) + '.csv'
 
                 #export DataFrame to text file
     with open(filepath, 'w') as f:
-    	df_string = final_ml.to_string(header=False, index=True)
-    	f.write(df_string) 
+        df_string = final_ml.to_csv(header=True, index=True)
+        f.write(df_string) 
 
 def perdict_traffic(generated_traffic, alpha=1, period_length=90, constant_bitrate=True, number_of_nodes=15):
     
