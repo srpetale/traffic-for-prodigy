@@ -99,7 +99,7 @@ def generate_traffic_based_on_seattle(from_date=0, to_date=0, aggregation = 'max
 
                 #export DataFrame to text file
                 with open(filepath, 'w') as f:
-                    df_string = generated_traffic.to_csv(header=True, index=True) 
+                    df_string = generated_traffic.to_string(header=False, index=True)
                     f.write(df_string)
                 source_ids = [] 
                 destination_ids = [] 
@@ -238,7 +238,7 @@ def perdict_traffic_for_next_period(traffic_from_previous_period, alpha=ALPHA_PE
 
                 #export DataFrame to text file
     with open(filepath, 'w') as f:
-        df_string = final_ml.to_csv(header=True, index=True)
+        df_string = final_ml.to_string(header=False, index=True)
         f.write(df_string) 
 
 def perdict_traffic(generated_traffic, alpha=1, period_length=90, constant_bitrate=True, number_of_nodes=15):
