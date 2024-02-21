@@ -21,14 +21,14 @@ def generate_for_load(LAMBDA = 100, ALPHAS_LIST = [2]):
 		predicted_traffic_alphafolder_path: str = load_folder_path + '/' + 'predicted_traffic' + '/' + 'alpha' + str(alpha)
 		Path(predicted_traffic_alphafolder_path).mkdir(parents=True, exist_ok=True)
 		
-	#generate_traffic_based_on_seattle(
-	  #  from_date=FROM_DATE, 
-	   # to_date=TO_DATE, 
-	    #first_erlang=LAMBDA, 
-	 #   constant_bitrate=IS_CONSTANT_BITRATE, 
-	  #  aggregation=AGGREGATION, 
-	   # resampling=RESAMPLING,
-	    #actual_traffic_folder_path=actual_traffic_folder_path)
+	generate_traffic_based_on_seattle(
+	    from_date=FROM_DATE, 
+	    to_date=TO_DATE, 
+	    first_erlang=LAMBDA, 
+	    constant_bitrate=IS_CONSTANT_BITRATE, 
+	    aggregation=AGGREGATION, 
+	    resampling=RESAMPLING,
+	    actual_traffic_folder_path=actual_traffic_folder_path)
 
 	# predict three periods
 	columns = ["current_global_time", "source_id", "destination_id", "datarate", "arrival_time", "departure_time"]

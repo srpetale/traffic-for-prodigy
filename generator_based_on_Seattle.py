@@ -95,7 +95,7 @@ def generate_traffic_based_on_seattle(from_date=0, to_date=0, aggregation = 'max
 
             if(last_arrival >= period*period_length):
                 generated_traffic = pd.DataFrame({'current_global_time':arrival_times, 'source_id':source_ids,'destination_id':destination_ids,'datarate':datarates,'arrival_time':arrival_times,'departure_time':departure_times})
-                filepath: str = actual_traffic_folder_path + '/' + 'actual_traffic' + '_' + str(UPGRADE_PERIOD * (period-1)) + '_' + str(UPGRADE_PERIOD * period) + '.csv'
+                filepath: str = actual_traffic_folder_path + '/' + 'actual_traffic' + '_' + str(UPGRADE_PERIOD * (period-1)) + '_' + str(UPGRADE_PERIOD * period) + '.txt'
 
                 #export DataFrame to text file
                 with open(filepath, 'w') as f:
@@ -234,7 +234,7 @@ def perdict_traffic_for_next_period(traffic_from_previous_period, alpha=ALPHA_PE
     final_ml = pd.concat(dfs)
     final_ml = final_ml.sort_values(by=['current_global_time']).reset_index(drop=True)
     final_ml = final_ml.drop(final_ml[final_ml.current_global_time > train_end+period_length].index)        
-    filepath: str = predicted_traffic_alphafolder_path + '/' + 'predicted_traffic' + '_' + str(index + UPGRADE_PERIOD) + '_' + str(index + UPGRADE_PERIOD*2) + '.csv'
+    filepath: str = predicted_traffic_alphafolder_path + '/' + 'predicted_traffic' + '_' + str(index + UPGRADE_PERIOD) + '_' + str(index + UPGRADE_PERIOD*2) + '.txt'
 
                 #export DataFrame to text file
     with open(filepath, 'w') as f:
