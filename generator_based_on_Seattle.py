@@ -234,8 +234,7 @@ def perdict_traffic_for_next_period(traffic_from_previous_period, alpha=ALPHA_PE
     final_ml = pd.concat(dfs)
     final_ml = final_ml.sort_values(by=['current_global_time']).reset_index(drop=True)
     final_ml = final_ml.drop(final_ml[final_ml.current_global_time > train_end+period_length].index)        
-    filepath: str = predicted_traffic_alphafolder_path + '/' + 'predicted_traffic' + '_' + str(index + UPGRADE_PERIOD) + '_' + str(index + UPGRADE_PERIOD*2) + '.txt'
-
+    filepath: str = predicted_traffic_alphafolder_path + '/' + 'predicted_traffic' + '_' + str((index+1) * UPGRADE_PERIOD) + '_' + str((index+2) * UPGRADE_PERIOD) + '.txt'
                 #export DataFrame to text file
     with open(filepath, 'w') as f:
         df_string = final_ml.to_string(header=False, index=True)
